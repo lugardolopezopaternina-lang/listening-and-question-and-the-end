@@ -43,11 +43,10 @@
       gap: 1.25rem;
     }
 
-    /* Modal de permiso único al inicio */
     .start-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(11, 19, 41, 0.95);
+      background: rgba(11, 19, 41, 0.96);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -108,7 +107,7 @@
       background-color: var(--accent);
       color: #0b1329;
       border: none;
-      padding: 0.55rem 1.1rem;
+      padding: 0.65rem 1.3rem;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
@@ -127,6 +126,7 @@
     .btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-secondary {
@@ -150,14 +150,33 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
-    .audio-section {
+    /* Reproductor protegido */
+    .audio-control-card {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      align-items: center;
+      gap: 0.8rem;
       background: rgba(11, 19, 41, 0.7);
       padding: 1.2rem;
       border-radius: 12px;
       border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .audio-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.2rem;
+    }
+
+    .audio-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.1s linear;
     }
 
     .tag-title {
@@ -168,12 +187,6 @@
       letter-spacing: 0.05em;
     }
 
-    audio {
-      width: 100%;
-      height: 42px;
-    }
-
-    /* Zona interactiva oral (Micrófono) */
     .oral-zone {
       display: flex;
       flex-direction: column;
@@ -230,7 +243,6 @@
       justify-content: center;
     }
 
-    /* Caja de retroalimentación inmediata */
     .eval-box {
       display: none;
       padding: 1.2rem;
@@ -298,15 +310,15 @@
 </head>
 <body>
 
-  <!-- Modal para autorizar el micrófono una sola vez -->
+  <!-- Modal para autorizar micrófono una sola vez -->
   <div id="start-overlay" class="start-overlay">
     <div class="start-modal">
-      <h2 style="color: var(--accent);">B2 Oral Fluency Lab</h2>
+      <h2 style="color: var(--accent);">B2 Oral Fluency Simulation</h2>
       <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
-        In this simulation, you will <strong>listen to the story and spoken question</strong>, and then <strong>answer out loud</strong> when the beep sounds. No typing is required.
+        Listen to the passage and final question. The audio can only be played <strong>once without skipping</strong>. When the BEEP sounds, speak your answer in English.
       </p>
       <button class="btn" id="start-btn" style="padding: 0.8rem 1.6rem; font-size: 1rem;">
-        🎙️ Start Lab & Grant Mic Access
+        🎙️ Start Test & Authorize Microphone
       </button>
       <p id="perm-error" style="color: var(--danger); font-size: 0.85rem; display: none;"></p>
     </div>
@@ -315,7 +327,7 @@
   <div class="container">
     <header>
       <h1>B2 Oral Fluency & Listening Lab</h1>
-      <p class="subtitle">Listen to the passage and question. When you hear the BEEP, speak your answer.</p>
+      <p class="subtitle">Listen once. When the BEEP sounds, speak your answer clearly.</p>
     </header>
 
     <div class="dashboard-bar">
@@ -328,19 +340,25 @@
     <div class="card">
       <h2 id="story-title" style="color: var(--accent);">1. The Forgotten Recipe</h2>
 
-      <div class="audio-section">
-        <span class="tag-title">🎧 1. Listen (Story + Spoken Question):</span>
-        <audio id="audio-player" controls preload="auto">
-          <source id="audio-src" src="1. The Forgotten Recipe.mp3" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
+      <!-- Reproductor protegido: sin barra para adelantar ni pausar -->
+      <div class="audio-control-card">
+        <span class="tag-title">🎧 1. Listen (Audio plays once):</span>
+        <button class="btn" id="play-audio-btn">
+          ▶ Play Audio Passage
+        </button>
+        <div class="audio-progress-bar">
+          <div class="audio-progress-fill" id="audio-progress"></div>
+        </div>
+        <p id="audio-status" style="font-size: 0.85rem; color: var(--text-muted);">
+          Click to start listening. You cannot rewind or skip.
+        </p>
       </div>
 
       <div class="oral-zone">
         <span class="tag-title">🎙️ 2. Speak your answer:</span>
         <div id="mic-btn" class="mic-button" title="Microphone">🎤</div>
         <p id="mic-status" style="font-size: 0.9rem; color: var(--text-muted);">
-          Play the audio. When the audio finishes, the BEEP will sound and the mic will turn on.
+          Listen to the audio track first. Microphone will beep and start at the end.
         </p>
         <div class="speech-box" id="speech-result">
           (Your spoken answer will appear here...)
@@ -363,7 +381,10 @@
     </div>
   </div>
 
+  <audio id="hidden-audio" preload="auto"></audio>
+
   <script>
+    // Configuración estricta de palabras clave obligatorias (required)
     const stories = [
       {
         id: 1,
@@ -371,7 +392,7 @@
         audio: "1. The Forgotten Recipe.mp3",
         script: "Julian spent hours trying to bake his grandmother’s favorite lemon cake.\nEvery cake he made failed because something was missing from the written recipe.\nWhile cleaning the kitchen cupboard, he found a tiny note hidden behind a jar.\nIt said: always add a spoonful of honey before putting the tray in the oven.\nThat small secret made the cake taste just like the one from his childhood.\n\nQuestion: What missing ingredient helped Julian successfully recreate his grandmother's cake?",
         question: "What missing ingredient helped Julian successfully recreate his grandmother's cake?",
-        keywords: ["honey", "spoonful", "spoon"],
+        required: ["honey"], // OBLIGATORIO: Debe mencionar miel
         model: "A spoonful of honey."
       },
       {
@@ -380,7 +401,7 @@
         audio: "2. The Late Train.mp3",
         script: "Elena ran as fast as she could toward the platform to catch the train.\nThe doors started to close, but she quickly put her backpack between them.\nThe automatic doors opened again, and she walked in and sat down to rest.\nWhen she looked out the window, she checked the digital screen above her seat.\nShe was relieved to see she was on the right train going home.\n\nQuestion: How did Elena stop the train doors from closing so she could get on?",
         question: "How did Elena stop the train doors from closing so she could get on?",
-        keywords: ["backpack", "bag"],
+        required: ["backpack", "bag"], // OBLIGATORIO: Mochila o bolso
         model: "She put her backpack between the closing doors."
       },
       {
@@ -389,8 +410,8 @@
         audio: "3. The Art Auction.mp3",
         script: "Marcus held his bidder card in his hand while the price kept going up.\nHe had loved the blue painting since the moment he saw it in the catalog.\nTwo other buyers made high offers, but Marcus was determined to win today.\nHe raised his card one last time right before the seller closed the sale.\nThe wooden hammer hit the table, and the painting officially belonged to him.\n\nQuestion: Why was Marcus willing to make high offers during the auction?",
         question: "Why was Marcus willing to make high offers during the auction?",
-        keywords: ["loved", "blue painting", "catalog", "determined", "painting"],
-        model: "Because he loved the blue painting and was determined to win."
+        required: ["blue painting", "painting", "loved"],
+        model: "Because he loved the blue painting and was determined to win it."
       },
       {
         id: 4,
@@ -398,7 +419,7 @@
         audio: "4. The Mountain Path.mp3",
         script: "Lucas followed the trail up the mountain, but dark clouds brought thick gray fog.\nHe could only see a few steps in front of him on the rocky ground.\nInstead of running, he stopped and checked the compass on his phone carefully.\nAfter walking slowly for ten minutes, he reached a flat wooden bridge over a river.\nOn the other side, the warm lights of the cabin guided him safely inside.\n\nQuestion: What tool helped Lucas find his way when the fog covered the path?",
         question: "What tool helped Lucas find his way when the fog covered the path?",
-        keywords: ["compass", "phone"],
+        required: ["compass"], // OBLIGATORIO: Brújula
         model: "The compass on his phone."
       },
       {
@@ -407,7 +428,7 @@
         audio: "5. The Computer Problem.mp3",
         script: "Sofia worked late into the night trying to fix a bug in the store website.\nCustomers could not finish their orders because the pay button stopped working.\nShe read the computer code line by line until she saw a missing comma.\nOnce she added the symbol and saved the file, she tested the page again.\nThe payment system worked instantly, and the orders went through without issues.\n\nQuestion: What specific error in the code was causing the checkout system to fail?",
         question: "What specific error in the code was causing the checkout system to fail?",
-        keywords: ["comma", "missing comma"],
+        required: ["comma"], // OBLIGATORIO: Coma
         model: "A missing comma in the code."
       },
       {
@@ -416,7 +437,7 @@
         audio: "6. The Old Watch.mp3",
         script: "David found an old silver watch in his grandfather’s desk that no longer worked.\nThe local repair shop told him it was too old and could not be fixed.\nDavid opened the back of the watch at home using small tools and a bright lamp.\nHe removed a tiny piece of dust trapped between two of the metal wheels.\nImmediately, the small hands started moving smoothly around the numbers again.\n\nQuestion: What was stopping the watch's internal wheels from turning?",
         question: "What was stopping the watch's internal wheels from turning?",
-        keywords: ["dust", "piece of dust", "wheel"],
+        required: ["dust"], // OBLIGATORIO: Polvo
         model: "A tiny piece of dust trapped between two metal wheels."
       },
       {
@@ -425,7 +446,7 @@
         audio: "7. The Forest Plant.mp3",
         script: "Dr. Alvarez walked through the wet forest for weeks searching for rare flowers.\nHer trip was almost over, and she had not discovered anything new yet.\nWhile resting under a big tree during the rain, she saw a bright purple petal.\nIt was a wild flower that scientists believed had disappeared many years ago.\nShe took photos and notes, happy to have found proof that it still lived.\n\nQuestion: Why was finding the purple flower so significant for Dr. Alvarez?",
         question: "Why was finding the purple flower so significant for Dr. Alvarez?",
-        keywords: ["disappeared", "extinct", "proof", "still lived"],
+        required: ["disappeared", "extinct", "still lived", "proof", "rare"],
         model: "Because scientists believed it had disappeared many years ago."
       },
       {
@@ -434,7 +455,7 @@
         audio: "8. The Hot Coffee.mp3",
         script: "Clara dropped her paper cup, spilling black coffee all over her printed report.\nHer boss was waiting in the meeting room, and the presentation started in five minutes.\nShe stayed calm, left the dirty papers behind, and brought her tablet instead.\nShe explained her plan with confidence, showing pictures and numbers on the screen.\nThe team liked her clear ideas so much that they approved the project right away.\n\nQuestion: How did Clara deliver her presentation after ruining her printed notes?",
         question: "How did Clara deliver her presentation after ruining her printed notes?",
-        keywords: ["tablet", "screen"],
+        required: ["tablet", "ipad", "screen"], // OBLIGATORIO: Tablet / pantalla
         model: "She brought her tablet to show pictures and numbers on the screen."
       },
       {
@@ -443,8 +464,8 @@
         audio: "9. The Missing Suitcase.mp3",
         script: "Mateo landed in Rome, but the airport staff said his suitcase was still in London.\nHe had an important job interview the next morning and only had his travel clothes.\nHe walked to a small shop nearby and bought a simple white shirt and black trousers.\nHe arrived at the office early, looking neat and ready to answer every question.\nThe interview went so well that the company offered him the job that afternoon.\n\nQuestion: How did Mateo solve the problem of not having proper clothes for his interview?",
         question: "How did Mateo solve the problem of not having proper clothes for his interview?",
-        keywords: ["bought", "shirt", "trousers", "shop", "clothes"],
-        model: "He bought a white shirt and black trousers at a nearby shop."
+        required: ["bought", "shirt", "trousers", "clothes", "shop"],
+        model: "He bought a simple white shirt and black trousers at a nearby shop."
       },
       {
         id: 10,
@@ -452,7 +473,7 @@
         audio: "10. The Terrace Garden.mp3",
         script: "Nora wanted to grow fresh vegetables on the empty roof of her building.\nThe strong sun and wind often dried the plants before they could grow tall.\nShe built a simple watering system using plastic bottles and long pieces of string.\nThe soil stayed moist, and green leaves soon covered the wooden boxes.\nBy the end of summer, she was picking fresh red tomatoes every morning.\n\nQuestion: What materials did Nora use to build her rooftop watering system?",
         question: "What materials did Nora use to build her rooftop watering system?",
-        keywords: ["bottles", "string", "plastic bottles"],
+        required: ["bottles", "string"], // OBLIGATORIO: Botellas y cuerdas
         model: "Plastic bottles and long pieces of string."
       }
     ];
@@ -481,7 +502,7 @@
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
         osc.connect(gain);
         gain.connect(ctx.destination);
@@ -502,8 +523,10 @@
       const scriptContainer = document.getElementById('script-container');
       const modelAnswer = document.getElementById('model-answer');
       const revealedQuestion = document.getElementById('revealed-question');
-      const audioPlayer = document.getElementById('audio-player');
-      const audioSrc = document.getElementById('audio-src');
+      const hiddenAudio = document.getElementById('hidden-audio');
+      const playAudioBtn = document.getElementById('play-audio-btn');
+      const audioStatus = document.getElementById('audio-status');
+      const audioProgress = document.getElementById('audio-progress');
       const evalBox = document.getElementById('eval-box');
       const evalBadge = document.getElementById('eval-badge');
       const evalMsg = document.getElementById('eval-message');
@@ -524,7 +547,7 @@
         recognition.onstart = () => {
           isRecognizing = true;
           micBtn.classList.add('recording');
-          micStatus.innerText = "🔴 Listening... Speak your answer in English now!";
+          micStatus.innerText = "🔴 Listening... Speak your answer now!";
           speechResult.innerText = "Listening to your voice...";
         };
 
@@ -543,7 +566,7 @@
           if (spoken && spoken !== "(Your spoken answer will appear here...)" && spoken !== "Listening to your voice...") {
             evaluateSpokenResponse(spoken);
           } else {
-            micStatus.innerText = "No voice heard. Click the 🎤 icon to speak again.";
+            micStatus.innerText = "No voice heard. Click the 🎤 icon to try speaking again.";
           }
         };
 
@@ -571,6 +594,25 @@
         }
       });
 
+      // Control del audio: suena una sola vez sin pausar ni adelantar
+      playAudioBtn.addEventListener("click", () => {
+        playAudioBtn.disabled = true;
+        audioStatus.innerText = "Playing audio... Listen carefully until the end.";
+        hiddenAudio.play();
+      });
+
+      hiddenAudio.addEventListener("timeupdate", () => {
+        if (hiddenAudio.duration) {
+          const pct = (hiddenAudio.currentTime / hiddenAudio.duration) * 100;
+          audioProgress.style.width = pct + "%";
+        }
+      });
+
+      hiddenAudio.addEventListener("ended", () => {
+        audioStatus.innerText = "Audio finished. Question spoken. BEEP!";
+        startListening();
+      });
+
       function startListening() {
         if (!recognition || isRecognizing) return;
         playBeep();
@@ -583,11 +625,6 @@
         }, 380);
       }
 
-      audioPlayer.addEventListener("ended", () => {
-        micStatus.innerText = "Audio finished. Beep sounding...";
-        startListening();
-      });
-
       micBtn.addEventListener("click", () => {
         if (!isRecognizing) {
           startListening();
@@ -596,19 +633,22 @@
         }
       });
 
+      // Evaluación con requerimiento estricto
       function evaluateSpokenResponse(spokenText) {
         const text = spokenText.toLowerCase();
         const current = stories[currentIndex];
-        const isMatch = current.keywords.some(kw => text.includes(kw.toLowerCase()));
+        
+        // Verifica que la respuesta contenga AL MENOS UNA de las palabras esenciales requeridas
+        const isCorrect = current.required.some(kw => text.includes(kw.toLowerCase()));
 
         evalBox.className = "eval-box show";
         revealedQuestion.innerText = "Spoken Question: " + current.question;
 
-        if (isMatch) {
+        if (isCorrect) {
           evalBox.classList.add("eval-correct");
           evalBadge.className = "badge badge-correct";
           evalBadge.innerText = "Correct (+1 Point)";
-          evalMsg.innerHTML = "Excellent! Your spoken answer captured the key detail correctly.";
+          evalMsg.innerHTML = "Excellent! Your answer captured the essential key information.";
           
           if (!answeredStories.has(currentIndex)) {
             answeredStories.add(currentIndex);
@@ -619,9 +659,9 @@
           evalBox.classList.add("eval-incorrect");
           evalBadge.className = "badge badge-incorrect";
           evalBadge.innerText = "Incorrect / Needs Review";
-          evalMsg.innerHTML = "Your answer did not contain the expected key information. Check the model answer below.";
+          evalMsg.innerHTML = "Your answer missed the essential key word (e.g. key ingredient or object). Compare with the model answer below.";
         }
-        micStatus.innerText = "Answer evaluated! Click Next to go to the next story.";
+        micStatus.innerText = "Evaluation finished! Click Next to go to the next story.";
       }
 
       function renderStory() {
@@ -630,17 +670,24 @@
           isRecognizing = false;
         }
 
+        hiddenAudio.pause();
+        hiddenAudio.currentTime = 0;
+        audioProgress.style.width = "0%";
+
         const story = stories[currentIndex];
         storyCounter.innerText = `Story ${currentIndex + 1} of ${stories.length}`;
         storyTitle.innerText = story.title;
         scriptContainer.innerText = story.script;
         modelAnswer.innerText = story.model;
 
-        audioSrc.src = encodeURI(story.audio);
-        audioPlayer.load();
+        hiddenAudio.src = encodeURI(story.audio);
+        hiddenAudio.load();
+
+        playAudioBtn.disabled = false;
+        audioStatus.innerText = "Click to start listening. You cannot rewind or skip.";
 
         speechResult.innerText = "(Your spoken answer will appear here...)";
-        micStatus.innerText = "Play the audio. When it finishes, the BEEP will sound and the mic will activate.";
+        micStatus.innerText = "Click Play Audio. After the question, you will hear a beep to speak.";
         evalBox.className = "eval-box";
         scriptContainer.classList.remove('visible');
         toggleScriptBtn.innerText = "Show Script";
