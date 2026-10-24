@@ -349,254 +349,33 @@
     const SIM_CASES = [
       {
         id: 1,
-        title: "Locked Out Dilemma",
-        audio: "audio1.mp3",
+        title: "The Forgotten Recipe",
+        audio: "1. The Forgotten Recipe.mp3",
         prompt: "Explain how you would handle this situation if you were stranded in the hallway without keys or money.",
         keywords: ["call", "neighbor", "locksmith", "landlord", "wait", "window", "help", "borrow"]
       },
       {
         id: 2,
-        title: "The Overstated Resume",
-        audio: "audio2.mp3",
+        title: "The Late Train",
+        audio: "2. The Late Train.mp3",
         prompt: "Do you believe embellishing qualifications on a resume is justifiable under certain circumstances? Give your reasons.",
         keywords: ["honesty", "risk", "skills", "experience", "ethical", "consequences", "prepare", "learn"]
       },
       {
         id: 3,
-        title: "The Mystery at Midnight",
-        audio: "audio3.mp3",
+        title: "The Art Auction",
+        audio: "3. The Art Auction.mp3",
         prompt: "Speculate about who the woman with the yellow umbrella was and what the brass key unlocks.",
         keywords: ["secret", "locker", "agent", "mystery", "curiosity", "clue", "station", "warning"]
       },
       {
         id: 4,
-        title: "A Difficult Breakup",
-        audio: "audio4.mp3",
+        title: "The Mountain Path",
+        audio: "4. The Mountain Path.mp3",
         prompt: "In your view, what are the clearest warning signs that indicate a relationship is coming to an end?",
         keywords: ["communication", "distance", "effort", "indifference", "feelings", "respect", "avoid", "talk"]
       },
       {
         id: 5,
-        title: "The Improbable Audition",
-        audio: "audio5.mp3",
-        prompt: "Why is perseverance critical when pursuing unconventional or difficult artistic ambitions?",
-        keywords: ["passion", "rejection", "practice", "confidence", "determination", "improve", "goals"]
-      },
-      {
-        id: 6,
-        title: "The Time Capsule",
-        audio: "audio6.mp3",
-        prompt: "Reflect on how childhood friendships and priorities evolve as individuals step into adult life.",
-        keywords: ["change", "responsibilities", "time", "nostalgia", "grow", "distance", "memories", "values"]
-      },
-      {
-        id: 7,
-        title: "The Grandma's Secret",
-        audio: "audio7.mp3",
-        prompt: "Is it ever acceptable to maintain a harmless deception to preserve a cherished family tradition?",
-        keywords: ["tradition", "harmless", "truth", "expectation", "family", "recipe", "protect", "memory"]
-      },
-      {
-        id: 8,
-        title: "The Corporate Whistleblower",
-        audio: "audio8.mp3",
-        prompt: "Discuss the moral courage required to report unlawful or hazardous corporate behavior.",
-        keywords: ["ethics", "danger", "courage", "public", "responsibility", "justice", "truth", "risk"]
-      },
-      {
-        id: 9,
-        title: "Backpacking Reality",
-        audio: "audio9.mp3",
-        prompt: "Compare idealized social media depictions of budget travel with the unglamorous realities on the ground.",
-        keywords: ["expectations", "reality", "uncomfortable", "adventure", "authentic", "filter", "experience", "budget"]
-      },
-      {
-        id: 10,
-        title: "A Belated Apology",
-        audio: "audio10.mp3",
-        prompt: "What makes an apology genuine, and how can trust be rebuilt after a significant breach of faith?",
-        keywords: ["accountability", "forgiveness", "actions", "rebuild", "trust", "sincere", "patience", "mistake"]
-      }
-    ];
-
-    let currentCaseIdx = 0;
-    let isRecording = false;
-    let recognition = null;
-    let fullTranscript = "";
-
-    const audioPlayer = document.getElementById("audioPlayer");
-    const scenarioTitle = document.getElementById("scenarioTitle");
-    const promptQuestion = document.getElementById("promptQuestion");
-    const micBtn = document.getElementById("micBtn");
-    const micStatus = document.getElementById("micStatus");
-    const transcriptDisplay = document.getElementById("transcriptDisplay");
-    const evaluateBtn = document.getElementById("evaluateBtn");
-    const evalBox = document.getElementById("evalBox");
-    const evalBadge = document.getElementById("evalBadge");
-    const evalFeedback = document.getElementById("evalFeedback");
-    const nextCaseBtn = document.getElementById("nextCaseBtn");
-    const caseIndicator = document.getElementById("caseIndicator");
-    const chipsNav = document.getElementById("chipsNav");
-    const startOverlay = document.getElementById("startOverlay");
-    const startSimBtn = document.getElementById("startSimBtn");
-
-    // Sistema de fallback multinivel para audios
-    audioPlayer.addEventListener("error", function() {
-      const src = audioPlayer.getAttribute("src") || "";
-      const baseName = `audio${SIM_CASES[currentCaseIdx].id}`;
-
-      if (src === `${baseName}.mp3`) {
-        // 1. Probar doble extensión local
-        audioPlayer.src = `${baseName}.mp3.mp3`;
-        audioPlayer.load();
-      } else if (src === `${baseName}.mp3.mp3`) {
-        // 2. Enlazar desde tu repositorio listening-challenge si no están subidos aquí
-        audioPlayer.src = `https://lugardolopezpaternina-lang.github.io/listening-challenge/${baseName}.mp3`;
-        audioPlayer.load();
-      } else if (src.includes("listening-challenge") && !src.endsWith(".mp3.mp3")) {
-        // 3. Probar doble extensión en el repositorio externo
-        audioPlayer.src = `https://lugardolopezpaternina-lang.github.io/listening-challenge/${baseName}.mp3.mp3`;
-        audioPlayer.load();
-      }
-    });
-
-    // Configuración de Reconocimiento de Voz
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-
-      recognition.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            fullTranscript += " " + event.results[i][0].transcript;
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-        transcriptDisplay.textContent = (fullTranscript + " " + interim).trim() || "Listening...";
-        if (fullTranscript.trim().length > 5) {
-          evaluateBtn.disabled = false;
-        }
-      };
-
-      recognition.onerror = (e) => {
-        micStatus.textContent = "Microphone status: " + e.error;
-        stopRecording();
-      };
-    } else {
-      micStatus.textContent = "Speech recognition is not supported in this browser. Please use Chrome, Edge, or Brave.";
-      micBtn.style.opacity = "0.5";
-      micBtn.style.cursor = "not-allowed";
-    }
-
-    micBtn.addEventListener("click", () => {
-      if (!recognition) return;
-      if (!isRecording) {
-        startRecording();
-      } else {
-        stopRecording();
-      }
-    });
-
-    function startRecording() {
-      fullTranscript = "";
-      transcriptDisplay.textContent = "Listening to your response...";
-      try {
-        recognition.start();
-        isRecording = true;
-        micBtn.classList.add("recording");
-        micStatus.textContent = "Recording... Click again when finished.";
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    function stopRecording() {
-      if (!isRecording) return;
-      recognition.stop();
-      isRecording = false;
-      micBtn.classList.remove("recording");
-      micStatus.textContent = "Recording stopped. Click Evaluate to review your production.";
-    }
-
-    evaluateBtn.addEventListener("click", () => {
-      stopRecording();
-      const text = fullTranscript.toLowerCase();
-      const current = SIM_CASES[currentCaseIdx];
-      const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-
-      let matchedKeywords = current.keywords.filter(k => text.includes(k));
-
-      evalBox.classList.add("visible");
-      if (wordCount >= 20 && matchedKeywords.length >= 2) {
-        evalBadge.className = "eval-badge eval-success";
-        evalBadge.textContent = "Solid B2 Response";
-        evalFeedback.textContent = `Excellent work! You produced ${wordCount} words and incorporated relevant context-specific terms (${matchedKeywords.join(", ")}). Your response is cohesive and directly targets the question.`;
-      } else {
-        evalBadge.className = "eval-badge eval-warning";
-        evalBadge.textContent = "Needs Development";
-        evalFeedback.textContent = `You spoke ${wordCount} words. For a strong B2 performance, aim for extended discourse (at least 20-30 words) and elaborate using relevant vocabulary related to the scenario.`;
-      }
-    });
-
-    nextCaseBtn.addEventListener("click", () => {
-      if (currentCaseIdx < SIM_CASES.length - 1) {
-        loadCase(currentCaseIdx + 1);
-      } else {
-        alert("Simulation completed! Well done.");
-      }
-    });
-
-    function loadCase(idx) {
-      currentCaseIdx = idx;
-      const data = SIM_CASES[currentCaseIdx];
-
-      scenarioTitle.textContent = data.title;
-      promptQuestion.textContent = data.prompt;
-      caseIndicator.textContent = `Case ${data.id} / ${SIM_CASES.length}`;
-
-      audioPlayer.src = data.audio;
-      audioPlayer.load();
-
-      fullTranscript = "";
-      transcriptDisplay.textContent = "Your spoken response will appear here...";
-      evaluateBtn.disabled = true;
-      evalBox.classList.remove("visible");
-      micStatus.textContent = "Click the microphone to start speaking";
-
-      updateChips();
-    }
-
-    function buildChips() {
-      chipsNav.innerHTML = "";
-      SIM_CASES.forEach((c, i) => {
-        const chip = document.createElement("div");
-        chip.className = "chip";
-        chip.textContent = c.id;
-        chip.addEventListener("click", () => loadCase(i));
-        chipsNav.appendChild(chip);
-      });
-    }
-
-    function updateChips() {
-      const chips = document.querySelectorAll(".chip");
-      chips.forEach((ch, i) => {
-        if (i === currentCaseIdx) ch.classList.add("active");
-        else ch.classList.remove("active");
-      });
-    }
-
-    startSimBtn.addEventListener("click", () => {
-      startOverlay.style.display = "none";
-      loadCase(0);
-    });
-
-    buildChips();
-    loadCase(0);
-  </script>
-</body>
-</html>
+        title: "The Computer Problem",
+        audio: "5. The Computer Problem.mp3",
