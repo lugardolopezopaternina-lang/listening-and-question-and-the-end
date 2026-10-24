@@ -154,7 +154,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.8rem;
+      gap: 0.9rem;
       background: rgba(11, 19, 41, 0.7);
       padding: 1.2rem;
       border-radius: 12px;
@@ -162,20 +162,12 @@
       text-align: center;
     }
 
-    .audio-progress-bar {
+    audio {
       width: 100%;
-      height: 8px;
-      background: #0f172a;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 0.2rem;
-    }
-
-    .audio-progress-fill {
-      width: 0%;
-      height: 100%;
-      background: var(--accent);
-      transition: width 0.1s linear;
+      max-width: 500px;
+      height: 42px;
+      outline: none;
+      margin-top: 0.3rem;
     }
 
     .tag-title {
@@ -311,7 +303,7 @@
   <div class="start-overlay" id="startOverlay">
     <div class="start-modal">
       <h1>B2 Oral Simulation</h1>
-      <p class="subtitle">Welcome! This platform will test your listening comprehension and spontaneous oral production. You will hear an audio track and respond verbally to a prompt.</p>
+      <p class="subtitle">Welcome! This platform tests your listening comprehension and spontaneous oral production. Listen to each audio track and answer the oral prompt using your microphone.</p>
       <button class="btn" id="startSimBtn">Start Simulation</button>
     </div>
   </div>
@@ -331,11 +323,7 @@
       <div class="audio-control-card">
         <span class="tag-title">Listening Audio Track</span>
         <h3 id="scenarioTitle">Loading scenario...</h3>
-        <audio id="audioPlayer" preload="auto"></audio>
-        <button class="btn" id="playAudioBtn">Play Audio</button>
-        <div class="audio-progress-bar">
-          <div class="audio-progress-fill" id="audioProgress"></div>
-        </div>
+        <audio id="audioPlayer" controls preload="auto"></audio>
       </div>
 
       <div class="oral-zone">
@@ -437,8 +425,6 @@
     let fullTranscript = "";
 
     const audioPlayer = document.getElementById("audioPlayer");
-    const playAudioBtn = document.getElementById("playAudioBtn");
-    const audioProgress = document.getElementById("audioProgress");
     const scenarioTitle = document.getElementById("scenarioTitle");
     const promptQuestion = document.getElementById("promptQuestion");
     const micBtn = document.getElementById("micBtn");
@@ -454,38 +440,27 @@
     const startOverlay = document.getElementById("startOverlay");
     const startSimBtn = document.getElementById("startSimBtn");
 
-    // Fallback para nombres de audio
-    audioPlayer.addEventListener("error", () => {
-      const src = audioPlayer.getAttribute("src");
-      if (src && src.endsWith(".mp3") && !src.endsWith(".mp3.mp3")) {
-        audioPlayer.src = src + ".mp3";
+    // Sistema de fallback multinivel para audios
+    audioPlayer.addEventListener("error", function() {
+      const src = audioPlayer.getAttribute("src") || "";
+      const baseName = `audio${SIM_CASES[currentCaseIdx].id}`;
+
+      if (src === `${baseName}.mp3`) {
+        // 1. Probar doble extensión local
+        audioPlayer.src = `${baseName}.mp3.mp3`;
+        audioPlayer.load();
+      } else if (src === `${baseName}.mp3.mp3`) {
+        // 2. Enlazar desde tu repositorio listening-challenge si no están subidos aquí
+        audioPlayer.src = `https://lugardolopezpaternina-lang.github.io/listening-challenge/${baseName}.mp3`;
+        audioPlayer.load();
+      } else if (src.includes("listening-challenge") && !src.endsWith(".mp3.mp3")) {
+        // 3. Probar doble extensión en el repositorio externo
+        audioPlayer.src = `https://lugardolopezpaternina-lang.github.io/listening-challenge/${baseName}.mp3.mp3`;
         audioPlayer.load();
       }
     });
 
-    audioPlayer.addEventListener("timeupdate", () => {
-      if (audioPlayer.duration) {
-        const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        audioProgress.style.width = pct + "%";
-      }
-    });
-
-    audioPlayer.addEventListener("ended", () => {
-      playAudioBtn.textContent = "Replay Audio";
-      audioProgress.style.width = "0%";
-    });
-
-    playAudioBtn.addEventListener("click", () => {
-      if (audioPlayer.paused) {
-        audioPlayer.play();
-        playAudioBtn.textContent = "Pause Audio";
-      } else {
-        audioPlayer.pause();
-        playAudioBtn.textContent = "Play Audio";
-      }
-    });
-
-    // Reconocimiento de Voz
+    // Configuración de Reconocimiento de Voz
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
@@ -503,13 +478,13 @@
           }
         }
         transcriptDisplay.textContent = (fullTranscript + " " + interim).trim() || "Listening...";
-        if (fullTranscript.trim().length > 10) {
+        if (fullTranscript.trim().length > 5) {
           evaluateBtn.disabled = false;
         }
       };
 
       recognition.onerror = (e) => {
-        micStatus.textContent = "Microphone error: " + e.error;
+        micStatus.textContent = "Microphone status: " + e.error;
         stopRecording();
       };
     } else {
@@ -564,7 +539,7 @@
       } else {
         evalBadge.className = "eval-badge eval-warning";
         evalBadge.textContent = "Needs Development";
-        evalFeedback.textContent = `You spoken ${wordCount} words. For a strong B2 performance, aim for extended discourse (at least 20-30 words) and elaborate using relevant vocabulary related to the scenario.`;
+        evalFeedback.textContent = `You spoke ${wordCount} words. For a strong B2 performance, aim for extended discourse (at least 20-30 words) and elaborate using relevant vocabulary related to the scenario.`;
       }
     });
 
@@ -586,8 +561,6 @@
 
       audioPlayer.src = data.audio;
       audioPlayer.load();
-      playAudioBtn.textContent = "Play Audio";
-      audioProgress.style.width = "0%";
 
       fullTranscript = "";
       transcriptDisplay.textContent = "Your spoken response will appear here...";
