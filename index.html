@@ -43,30 +43,6 @@
       gap: 1.25rem;
     }
 
-    .start-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(11, 19, 41, 0.96);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      padding: 1.5rem;
-    }
-
-    .start-modal {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2.2rem;
-      max-width: 500px;
-      text-align: center;
-      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
     header {
       text-align: center;
       margin-bottom: 0.25rem;
@@ -94,6 +70,38 @@
       border: 1px solid var(--border);
     }
 
+    .chips-container {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .chip:hover {
+      background: #334155;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #0b1329;
+      border-color: var(--accent);
+    }
+
     .score-badge {
       background: #0f172a;
       padding: 0.4rem 0.9rem;
@@ -101,42 +109,6 @@
       border: 1px solid var(--border);
       font-weight: 700;
       color: var(--accent);
-    }
-
-    .btn {
-      background-color: var(--accent);
-      color: #0b1329;
-      border: none;
-      padding: 0.65rem 1.3rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .btn:hover:not(:disabled) {
-      background-color: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-secondary {
-      background-color: #1e293b;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background-color: #334155;
     }
 
     .card {
@@ -234,6 +206,40 @@
       justify-content: center;
     }
 
+    .btn {
+      background-color: var(--accent);
+      color: #0b1329;
+      border: none;
+      padding: 0.65rem 1.3rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background-color: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #334155;
+    }
+
     .eval-box {
       display: none;
       padding: 1.2rem;
@@ -268,50 +274,14 @@
       color: var(--warning);
       border: 1px solid var(--warning);
     }
-
-    .chips-container {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 0.5rem;
-    }
-
-    .chip {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      background: #1e293b;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .chip.active {
-      background: var(--accent);
-      color: #0b1329;
-      border-color: var(--accent);
-    }
   </style>
 </head>
 <body>
 
-  <div class="start-overlay" id="startOverlay">
-    <div class="start-modal">
-      <h1>B2 Oral Simulation</h1>
-      <p class="subtitle">Welcome! This platform tests your listening comprehension and spontaneous oral production. Listen to each audio track and answer the oral prompt using your microphone.</p>
-      <button class="btn" id="startSimBtn">Start Simulation</button>
-    </div>
-  </div>
-
   <div class="container">
     <header>
       <h1>B2 Oral Fluency & Listening Simulation</h1>
-      <p class="subtitle">Listen carefully, analyze the context, and answer using your microphone.</p>
+      <p class="subtitle">Listen carefully, analyze the situation, and respond orally using your microphone.</p>
     </header>
 
     <div class="dashboard-bar">
@@ -323,7 +293,7 @@
       <div class="audio-control-card">
         <span class="tag-title">Listening Audio Track</span>
         <h3 id="scenarioTitle">Loading scenario...</h3>
-        <audio id="audioPlayer" controls preload="auto"></audio>
+        <audio id="audioPlayer" controls preload="metadata"></audio>
       </div>
 
       <div class="oral-zone">
@@ -344,38 +314,3 @@
       </div>
     </div>
   </div>
-
-  <script>
-    const SIM_CASES = [
-      {
-        id: 1,
-        title: "The Forgotten Recipe",
-        audio: "1. The Forgotten Recipe.mp3",
-        prompt: "Explain how you would handle this situation if you were stranded in the hallway without keys or money.",
-        keywords: ["call", "neighbor", "locksmith", "landlord", "wait", "window", "help", "borrow"]
-      },
-      {
-        id: 2,
-        title: "The Late Train",
-        audio: "2. The Late Train.mp3",
-        prompt: "Do you believe embellishing qualifications on a resume is justifiable under certain circumstances? Give your reasons.",
-        keywords: ["honesty", "risk", "skills", "experience", "ethical", "consequences", "prepare", "learn"]
-      },
-      {
-        id: 3,
-        title: "The Art Auction",
-        audio: "3. The Art Auction.mp3",
-        prompt: "Speculate about who the woman with the yellow umbrella was and what the brass key unlocks.",
-        keywords: ["secret", "locker", "agent", "mystery", "curiosity", "clue", "station", "warning"]
-      },
-      {
-        id: 4,
-        title: "The Mountain Path",
-        audio: "4. The Mountain Path.mp3",
-        prompt: "In your view, what are the clearest warning signs that indicate a relationship is coming to an end?",
-        keywords: ["communication", "distance", "effort", "indifference", "feelings", "respect", "avoid", "talk"]
-      },
-      {
-        id: 5,
-        title: "The Computer Problem",
-        audio: "5. The Computer Problem.mp3",
