@@ -227,8 +227,9 @@
     }
 
     .btn:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
+      filter: grayscale(0.5);
     }
 
     .btn-secondary {
@@ -324,8 +325,8 @@
         title: "1. The Forgotten Recipe",
         file: "1. The Forgotten Recipe.mp3",
         prompt: "According to the speaker, what is the secret addition to the cake?",
-        acceptedAnswers: ["egg", "an egg", "extra egg", "an extra egg", "coffee", "instant coffee", "spoonful of coffee", "spoonful of instant coffee", "honey", "spoon of honey"],
-        expectedDisplay: "An extra egg and a spoonful of instant coffee (or honey)"
+        acceptedAnswers: ["honey", "spoon of honey", "spoonful of honey", "egg", "an egg", "extra egg", "an extra egg", "coffee", "instant coffee", "spoonful of coffee", "spoonful of instant coffee"],
+        expectedDisplay: "Honey (or an extra egg / spoonful of coffee)"
       },
       {
         id: 2,
@@ -420,13 +421,20 @@
     const caseIndicator = document.getElementById("caseIndicator");
     const chipsNav = document.getElementById("chipsNav");
 
-    // Limpieza de caracteres para comparaciones directas
     function normalizeString(str) {
-      return str
+      return (str || "")
         .toLowerCase()
-        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
+        .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
         .replace(/\s+/g, " ")
         .trim();
+    }
+
+    function checkReadyToEvaluate() {
+      const text = normalizeString(fullTranscript || transcriptDisplay.textContent);
+      const placeholder = "your spoken response will appear here";
+      if (text.length > 0 && !text.includes(placeholder)) {
+        evaluateBtn.disabled = false;
+      }
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -446,8 +454,8 @@
           }
         }
         const textToShow = (fullTranscript + " " + interim).trim();
-        transcriptDisplay.textContent = textToShow || "Listening...";
         if (textToShow.length > 0) {
+          transcriptDisplay.textContent = textToShow;
           evaluateBtn.disabled = false;
         }
       };
@@ -471,6 +479,7 @@
     function startRecording() {
       fullTranscript = "";
       transcriptDisplay.textContent = "Listening to your response...";
+      evaluateBtn.disabled = true;
       try {
         recognition.start();
         isRecording = true;
@@ -487,18 +496,20 @@
       isRecording = false;
       micBtn.classList.remove("recording");
       micStatus.textContent = "Recording stopped. Click Evaluate to verify your answer.";
+      checkReadyToEvaluate();
     }
 
     evaluateBtn.addEventListener("click", () => {
-      stopRecording();
-      const rawStudentText = fullTranscript.trim() || transcriptDisplay.textContent.trim();
+      if (isRecording) stopRecording();
+
+      const rawStudentText = (fullTranscript.trim() || transcriptDisplay.textContent.trim());
       const studentClean = normalizeString(rawStudentText);
       const current = SIM_CASES[currentCaseIdx];
 
-      // Verificación directa: comprueba si alguna palabra/frase aceptada coincide
+      // Verificación directa y flexible
       const isCorrect = current.acceptedAnswers.some(ans => {
         const cleanAns = normalizeString(ans);
-        return studentClean.includes(cleanAns) || cleanAns.includes(studentClean);
+        return studentClean === cleanAns || studentClean.includes(cleanAns) || cleanAns.includes(studentClean);
       });
 
       evalBox.classList.add("visible");
