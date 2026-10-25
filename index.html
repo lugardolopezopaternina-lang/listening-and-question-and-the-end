@@ -204,6 +204,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
     }
 
     .btn {
@@ -248,6 +249,7 @@
       border: 1px solid var(--border);
       flex-direction: column;
       gap: 0.75rem;
+      text-align: left;
     }
 
     .eval-box.visible {
@@ -269,10 +271,10 @@
       border: 1px solid var(--success);
     }
 
-    .eval-warning {
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--warning);
-      border: 1px solid var(--warning);
+    .eval-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid var(--danger);
     }
   </style>
 </head>
@@ -281,7 +283,7 @@
   <div class="container">
     <header>
       <h1>B2 Oral Fluency & Listening Simulation</h1>
-      <p class="subtitle">Listen carefully, analyze the situation, and respond orally using your microphone.</p>
+      <p class="subtitle">Listen carefully, answer the question orally, and check your response.</p>
     </header>
 
     <div class="dashboard-bar">
@@ -297,10 +299,10 @@
       </div>
 
       <div class="oral-zone">
-        <span class="tag-title">Prompt for Oral Production</span>
+        <span class="tag-title">Listening Question</span>
         <h2 id="promptQuestion" style="font-size: 1.15rem; color: #fff;">...</h2>
         <div class="mic-button" id="micBtn" title="Click to speak">🎤</div>
-        <span id="micStatus" style="font-size: 0.88rem; color: var(--text-muted);">Click the microphone to start speaking</span>
+        <span id="micStatus" style="font-size: 0.88rem; color: var(--text-muted);">Click the microphone to record your answer</span>
         <div class="speech-box" id="transcriptDisplay">Your spoken response will appear here...</div>
         <button class="btn" id="evaluateBtn" disabled>Evaluate Response</button>
       </div>
@@ -317,16 +319,86 @@
 
   <script>
     const SIM_CASES = [
-      { id: 1, title: "1. The Forgotten Recipe", file: "1. The Forgotten Recipe.mp3", prompt: "Explain the importance of family traditions and culinary heritage." },
-      { id: 2, title: "2. The Late Train", file: "2. The Late Train.mp3", prompt: "Discuss how modern commuters handle unpredictable transport delays." },
-      { id: 3, title: "3. The Art Auction", file: "3. The Art Auction.mp3", prompt: "Analyze what drives the subjective monetary value of modern art." },
-      { id: 4, title: "4. The Mountain Path", file: "4. The Mountain Path.mp3", prompt: "Describe the essential preparations needed before undertaking a mountain hike." },
-      { id: 5, title: "5. The Computer Problem", file: "5. The Computer Problem.mp3", prompt: "How should workplaces adapt to technological interruptions and data recovery?" },
-      { id: 6, title: "6. The Old Watch", file: "6. The Old Watch.mp3", prompt: "Reflect on how physical heirlooms carry emotional significance across generations." },
-      { id: 7, title: "7. The Forest Plant", file: "7. The Forest Plant.mp3", prompt: "Explain the role of biodiversity conservation in maintaining local ecosystems." },
-      { id: 8, title: "8. The Hot Coffee", file: "8. The Hot Coffee.mp3", prompt: "Describe a time an unexpected accident disrupted your daily routine and how you reacted." },
-      { id: 9, title: "9. The Missing Suitcase", file: "9. The Missing Suitcase.mp3", prompt: "Detail the steps a traveler should take when luggage is misplaced at an airport." },
-      { id: 10, title: "10. The Terrace Garden", file: "10. The Terrace Garden.mp3", prompt: "Evaluate the benefits of urban gardening and green spaces in residential complexes." }
+      {
+        id: 1,
+        title: "1. The Forgotten Recipe",
+        file: "1. The Forgotten Recipe.mp3",
+        prompt: "According to the speaker, what is the secret addition to the cake?",
+        acceptedAnswers: ["egg", "an egg", "extra egg", "an extra egg", "coffee", "instant coffee", "spoonful of coffee", "spoonful of instant coffee", "honey", "spoon of honey"],
+        expectedDisplay: "An extra egg and a spoonful of instant coffee (or honey)"
+      },
+      {
+        id: 2,
+        title: "2. The Late Train",
+        file: "2. The Late Train.mp3",
+        prompt: "What language does the speaker claim to be fluent in on their resume?",
+        acceptedAnswers: ["french", "french language", "fluent in french"],
+        expectedDisplay: "French"
+      },
+      {
+        id: 3,
+        title: "3. The Art Auction",
+        file: "3. The Art Auction.mp3",
+        prompt: "What color was the umbrella held by the woman at the station?",
+        acceptedAnswers: ["yellow", "bright yellow", "yellow umbrella"],
+        expectedDisplay: "Yellow"
+      },
+      {
+        id: 4,
+        title: "4. The Mountain Path",
+        file: "4. The Mountain Path.mp3",
+        prompt: "How did the speaker describe their current emotional state regarding the relationship?",
+        acceptedAnswers: ["exhausted", "tired", "not angry", "drained"],
+        expectedDisplay: "Exhausted (not even angry anymore)"
+      },
+      {
+        id: 5,
+        title: "5. The Computer Problem",
+        file: "5. The Computer Problem.mp3",
+        prompt: "What animal did the speaker's battle cry sound like?",
+        acceptedAnswers: ["seagull", "startled seagull", "sea gull", "a seagull"],
+        expectedDisplay: "A startled seagull"
+      },
+      {
+        id: 6,
+        title: "6. The Old Watch",
+        file: "6. The Old Watch.mp3",
+        prompt: "How many years ago was the metal box buried in the backyard?",
+        acceptedAnswers: ["twenty", "20", "twenty years", "20 years"],
+        expectedDisplay: "Twenty years ago"
+      },
+      {
+        id: 7,
+        title: "7. The Forest Plant",
+        file: "7. The Forest Plant.mp3",
+        prompt: "Where does the speaker keep the secret flash drive hidden?",
+        acceptedAnswers: ["desk drawer", "underneath my desk drawer", "under the drawer", "desk", "drawer", "under desk"],
+        expectedDisplay: "Underneath the desk drawer"
+      },
+      {
+        id: 8,
+        title: "8. The Hot Coffee",
+        file: "8. The Hot Coffee.mp3",
+        prompt: "What drink did the speaker mention people sip in quiet alleys?",
+        acceptedAnswers: ["espresso", "coffee", "cup of espresso"],
+        expectedDisplay: "Espresso"
+      },
+      {
+        id: 9,
+        title: "9. The Missing Suitcase",
+        file: "9. The Missing Suitcase.mp3",
+        prompt: "Where did the speaker accidentally end up after taking the wrong train?",
+        acceptedAnswers: ["village", "tiny village", "a tiny village", "small village"],
+        expectedDisplay: "A tiny village"
+      },
+      {
+        id: 10,
+        title: "10. The Terrace Garden",
+        file: "10. The Terrace Garden.mp3",
+        prompt: "What was the speaker afraid of when they walked away in the past?",
+        acceptedAnswers: ["failing", "failure", "terrified of failing", "to fail"],
+        expectedDisplay: "Failing"
+      }
     ];
 
     let currentCaseIdx = 0;
@@ -348,6 +420,15 @@
     const caseIndicator = document.getElementById("caseIndicator");
     const chipsNav = document.getElementById("chipsNav");
 
+    // Limpieza de caracteres para comparaciones directas
+    function normalizeString(str) {
+      return str
+        .toLowerCase()
+        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
@@ -364,8 +445,11 @@
             interim += event.results[i][0].transcript;
           }
         }
-        transcriptDisplay.textContent = (fullTranscript + " " + interim).trim() || "Listening...";
-        if (fullTranscript.trim().length > 5) evaluateBtn.disabled = false;
+        const textToShow = (fullTranscript + " " + interim).trim();
+        transcriptDisplay.textContent = textToShow || "Listening...";
+        if (textToShow.length > 0) {
+          evaluateBtn.disabled = false;
+        }
       };
 
       recognition.onerror = (e) => {
@@ -402,23 +486,30 @@
       recognition.stop();
       isRecording = false;
       micBtn.classList.remove("recording");
-      micStatus.textContent = "Recording stopped. Click Evaluate to review your production.";
+      micStatus.textContent = "Recording stopped. Click Evaluate to verify your answer.";
     }
 
     evaluateBtn.addEventListener("click", () => {
       stopRecording();
-      const text = fullTranscript.toLowerCase();
-      const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+      const rawStudentText = fullTranscript.trim() || transcriptDisplay.textContent.trim();
+      const studentClean = normalizeString(rawStudentText);
+      const current = SIM_CASES[currentCaseIdx];
+
+      // Verificación directa: comprueba si alguna palabra/frase aceptada coincide
+      const isCorrect = current.acceptedAnswers.some(ans => {
+        const cleanAns = normalizeString(ans);
+        return studentClean.includes(cleanAns) || cleanAns.includes(studentClean);
+      });
 
       evalBox.classList.add("visible");
-      if (wordCount >= 20) {
+      if (isCorrect) {
         evalBadge.className = "eval-badge eval-success";
-        evalBadge.textContent = "Solid B2 Response";
-        evalFeedback.textContent = `Excellent work! You produced ${wordCount} words. Your response is cohesive and directly targets the question.`;
+        evalBadge.textContent = "Correct (100%)";
+        evalFeedback.innerHTML = `<strong>Great job!</strong> Your answer was recognized correctly.<br>Expected: <em>${current.expectedDisplay}</em>.`;
       } else {
-        evalBadge.className = "eval-badge eval-warning";
-        evalBadge.textContent = "Needs Development";
-        evalFeedback.textContent = `You spoke ${wordCount} words. For a strong B2 performance, aim for extended discourse (at least 20-30 words).`;
+        evalBadge.className = "eval-badge eval-danger";
+        evalBadge.textContent = "Incorrect";
+        evalFeedback.innerHTML = `Your response (<em>"${rawStudentText}"</em>) did not match the key information.<br>Expected: <strong>${current.expectedDisplay}</strong>.`;
       }
     });
 
@@ -428,6 +519,7 @@
     });
 
     function loadCase(idx) {
+      if (isRecording) stopRecording();
       currentCaseIdx = idx;
       const data = SIM_CASES[currentCaseIdx];
 
@@ -442,7 +534,7 @@
       transcriptDisplay.textContent = "Your spoken response will appear here...";
       evaluateBtn.disabled = true;
       evalBox.classList.remove("visible");
-      micStatus.textContent = "Click the microphone to start speaking";
+      micStatus.textContent = "Click the microphone to record your answer";
 
       updateChips();
     }
