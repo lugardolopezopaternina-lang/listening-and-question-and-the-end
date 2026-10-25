@@ -356,9 +356,20 @@
         id: 5,
         title: "5. The Computer Problem",
         file: "5. The Computer Problem.mp3",
-        prompt: "What was the main issue with the computer?",
-        acceptedAnswers: ["screen", "blue screen", "crash", "frozen", "freeze", "update", "hard drive", "system"],
-        expectedDisplay: "System crash / screen frozen"
+        prompt: "What specific error in the code was causing the checkout system to fail?",
+        acceptedAnswers: [
+          "comma",
+          "a comma",
+          "missing comma",
+          "a missing comma",
+          "miss coma",
+          "a miss coma",
+          "missed comma",
+          "syntax error",
+          "punctuation",
+          "punctuation error"
+        ],
+        expectedDisplay: "A missing comma"
       },
       {
         id: 6,
@@ -373,15 +384,15 @@
         title: "7. The Forest Plant",
         file: "7. The Forest Plant.mp3",
         prompt: "What made the plant in the forest unique?",
-        acceptedAnswers: ["glow", "flower", "rare", "color", "medicinal", "leaves", "leaf"],
-        expectedDisplay: "Its rare flowering / unique color"
+        acceptedAnswers: ["glow", "flower", "rare", "color", "medicinal", "leaves", "leaf", "blue"],
+        expectedDisplay: "Its rare flowering / unique color or glow"
       },
       {
         id: 8,
         title: "8. The Hot Coffee",
         file: "8. The Hot Coffee.mp3",
         prompt: "What caused the incident with the hot coffee?",
-        acceptedAnswers: ["spill", "dropped", "bumped", "rushed", "table", "bump"],
+        acceptedAnswers: ["spill", "dropped", "bumped", "rushed", "table", "bump", "elbow"],
         expectedDisplay: "Accidental spill / bump"
       },
       {
@@ -397,8 +408,8 @@
         title: "10. The Terrace Garden",
         file: "10. The Terrace Garden.mp3",
         prompt: "What was grown on the terrace garden?",
-        acceptedAnswers: ["tomatoes", "herbs", "vegetables", "flowers", "plants", "tomato"],
-        expectedDisplay: "Fresh herbs / vegetables"
+        acceptedAnswers: ["tomatoes", "herbs", "vegetables", "flowers", "plants", "tomato", "basil"],
+        expectedDisplay: "Fresh herbs / vegetables / tomatoes"
       }
     ];
 
@@ -506,7 +517,6 @@
       const studentClean = normalizeString(rawStudentText);
       const current = SIM_CASES[currentCaseIdx];
 
-      // Verificación directa y flexible
       const isCorrect = current.acceptedAnswers.some(ans => {
         const cleanAns = normalizeString(ans);
         return studentClean === cleanAns || studentClean.includes(cleanAns) || cleanAns.includes(studentClean);
