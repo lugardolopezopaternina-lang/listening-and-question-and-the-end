@@ -314,3 +314,160 @@
       </div>
     </div>
   </div>
+
+  <script>
+    const SIM_CASES = [
+      { id: 1, title: "1. The Forgotten Recipe", file: "1. The Forgotten Recipe.mp3", prompt: "Explain the importance of family traditions and culinary heritage." },
+      { id: 2, title: "2. The Late Train", file: "2. The Late Train.mp3", prompt: "Discuss how modern commuters handle unpredictable transport delays." },
+      { id: 3, title: "3. The Art Auction", file: "3. The Art Auction.mp3", prompt: "Analyze what drives the subjective monetary value of modern art." },
+      { id: 4, title: "4. The Mountain Path", file: "4. The Mountain Path.mp3", prompt: "Describe the essential preparations needed before undertaking a mountain hike." },
+      { id: 5, title: "5. The Computer Problem", file: "5. The Computer Problem.mp3", prompt: "How should workplaces adapt to technological interruptions and data recovery?" },
+      { id: 6, title: "6. The Old Watch", file: "6. The Old Watch.mp3", prompt: "Reflect on how physical heirlooms carry emotional significance across generations." },
+      { id: 7, title: "7. The Forest Plant", file: "7. The Forest Plant.mp3", prompt: "Explain the role of biodiversity conservation in maintaining local ecosystems." },
+      { id: 8, title: "8. The Hot Coffee", file: "8. The Hot Coffee.mp3", prompt: "Describe a time an unexpected accident disrupted your daily routine and how you reacted." },
+      { id: 9, title: "9. The Missing Suitcase", file: "9. The Missing Suitcase.mp3", prompt: "Detail the steps a traveler should take when luggage is misplaced at an airport." },
+      { id: 10, title: "10. The Terrace Garden", file: "10. The Terrace Garden.mp3", prompt: "Evaluate the benefits of urban gardening and green spaces in residential complexes." }
+    ];
+
+    let currentCaseIdx = 0;
+    let isRecording = false;
+    let recognition = null;
+    let fullTranscript = "";
+
+    const audioPlayer = document.getElementById("audioPlayer");
+    const scenarioTitle = document.getElementById("scenarioTitle");
+    const promptQuestion = document.getElementById("promptQuestion");
+    const micBtn = document.getElementById("micBtn");
+    const micStatus = document.getElementById("micStatus");
+    const transcriptDisplay = document.getElementById("transcriptDisplay");
+    const evaluateBtn = document.getElementById("evaluateBtn");
+    const evalBox = document.getElementById("evalBox");
+    const evalBadge = document.getElementById("evalBadge");
+    const evalFeedback = document.getElementById("evalFeedback");
+    const nextCaseBtn = document.getElementById("nextCaseBtn");
+    const caseIndicator = document.getElementById("caseIndicator");
+    const chipsNav = document.getElementById("chipsNav");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            fullTranscript += " " + event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        transcriptDisplay.textContent = (fullTranscript + " " + interim).trim() || "Listening...";
+        if (fullTranscript.trim().length > 5) evaluateBtn.disabled = false;
+      };
+
+      recognition.onerror = (e) => {
+        micStatus.textContent = "Microphone status: " + e.error;
+        stopRecording();
+      };
+    } else {
+      micStatus.textContent = "Speech recognition is not supported in this browser. Please use Chrome or Edge.";
+      micBtn.style.opacity = "0.5";
+      micBtn.style.cursor = "not-allowed";
+    }
+
+    micBtn.addEventListener("click", () => {
+      if (!recognition) return;
+      if (!isRecording) startRecording();
+      else stopRecording();
+    });
+
+    function startRecording() {
+      fullTranscript = "";
+      transcriptDisplay.textContent = "Listening to your response...";
+      try {
+        recognition.start();
+        isRecording = true;
+        micBtn.classList.add("recording");
+        micStatus.textContent = "Recording... Click again when finished.";
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function stopRecording() {
+      if (!isRecording) return;
+      recognition.stop();
+      isRecording = false;
+      micBtn.classList.remove("recording");
+      micStatus.textContent = "Recording stopped. Click Evaluate to review your production.";
+    }
+
+    evaluateBtn.addEventListener("click", () => {
+      stopRecording();
+      const text = fullTranscript.toLowerCase();
+      const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+
+      evalBox.classList.add("visible");
+      if (wordCount >= 20) {
+        evalBadge.className = "eval-badge eval-success";
+        evalBadge.textContent = "Solid B2 Response";
+        evalFeedback.textContent = `Excellent work! You produced ${wordCount} words. Your response is cohesive and directly targets the question.`;
+      } else {
+        evalBadge.className = "eval-badge eval-warning";
+        evalBadge.textContent = "Needs Development";
+        evalFeedback.textContent = `You spoke ${wordCount} words. For a strong B2 performance, aim for extended discourse (at least 20-30 words).`;
+      }
+    });
+
+    nextCaseBtn.addEventListener("click", () => {
+      if (currentCaseIdx < SIM_CASES.length - 1) loadCase(currentCaseIdx + 1);
+      else alert("Simulation completed! Well done.");
+    });
+
+    function loadCase(idx) {
+      currentCaseIdx = idx;
+      const data = SIM_CASES[currentCaseIdx];
+
+      scenarioTitle.textContent = data.title;
+      promptQuestion.textContent = data.prompt;
+      caseIndicator.textContent = `Case ${data.id} / ${SIM_CASES.length}`;
+
+      audioPlayer.src = encodeURI(data.file);
+      audioPlayer.load();
+
+      fullTranscript = "";
+      transcriptDisplay.textContent = "Your spoken response will appear here...";
+      evaluateBtn.disabled = true;
+      evalBox.classList.remove("visible");
+      micStatus.textContent = "Click the microphone to start speaking";
+
+      updateChips();
+    }
+
+    function buildChips() {
+      chipsNav.innerHTML = "";
+      SIM_CASES.forEach((c, i) => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = c.id;
+        chip.addEventListener("click", () => loadCase(i));
+        chipsNav.appendChild(chip);
+      });
+    }
+
+    function updateChips() {
+      const chips = document.querySelectorAll(".chip");
+      chips.forEach((ch, i) => {
+        if (i === currentCaseIdx) ch.classList.add("active");
+        else ch.classList.remove("active");
+      });
+    }
+
+    buildChips();
+    loadCase(0);
+  </script>
+</body>
+</html>
