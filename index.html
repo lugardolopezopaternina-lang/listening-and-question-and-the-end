@@ -150,6 +150,11 @@
       letter-spacing: 0.05em;
     }
 
+    /* Oculta la etiqueta "Listening Question" y el texto escrito de la pregunta */
+    .hidden-question-zone {
+      display: none !important;
+    }
+
     .oral-zone {
       display: flex;
       flex-direction: column;
@@ -284,7 +289,7 @@
   <div class="container">
     <header>
       <h1>B2 Oral Fluency & Listening Simulation</h1>
-      <p class="subtitle">Listen carefully, answer the question orally, and check your response.</p>
+      <p class="subtitle">Listen carefully to the audio and its final question, answer orally, and check your response.</p>
     </header>
 
     <div class="dashboard-bar">
@@ -300,8 +305,12 @@
       </div>
 
       <div class="oral-zone">
-        <span class="tag-title">Listening Question</span>
-        <h2 id="promptQuestion" style="font-size: 1.15rem; color: #fff;">...</h2>
+        <!-- Oculto para exigir que el alumno escuche la pregunta en el audio -->
+        <div class="hidden-question-zone">
+          <span class="tag-title">Listening Question</span>
+          <h2 id="promptQuestion">...</h2>
+        </div>
+
         <div class="mic-button" id="micBtn" title="Click to speak">🎤</div>
         <span id="micStatus" style="font-size: 0.88rem; color: var(--text-muted);">Click the microphone to record your answer</span>
         <div class="speech-box" id="transcriptDisplay">Your spoken response will appear here...</div>
