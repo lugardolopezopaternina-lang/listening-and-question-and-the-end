@@ -324,17 +324,17 @@
         id: 1,
         title: "1. The Forgotten Recipe",
         file: "1. The Forgotten Recipe.mp3",
-        prompt: "According to the speaker, what is the secret addition to the cake?",
-        acceptedAnswers: ["honey", "spoon of honey", "spoonful of honey", "egg", "an egg", "extra egg", "an extra egg", "coffee", "instant coffee", "spoonful of coffee", "spoonful of instant coffee"],
-        expectedDisplay: "Honey (or an extra egg / spoonful of coffee)"
+        prompt: "What missing ingredient helped Julian successfully recreate his grandmother's cake?",
+        acceptedAnswers: ["honey", "spoonful of honey", "a spoonful of honey", "spoon of honey", "a spoon of honey"],
+        expectedDisplay: "A spoonful of honey"
       },
       {
         id: 2,
         title: "2. The Late Train",
         file: "2. The Late Train.mp3",
-        prompt: "What did the person do to stop the train doors from closing?",
-        acceptedAnswers: ["backpack", "put her backpack", "put his backpack", "backpack between the doors", "her backpack", "his backpack", "bag", "her bag", "his bag", "between the doors"],
-        expectedDisplay: "Put backpack between the doors"
+        prompt: "How did Elena stop the train doors from closing so she could get on?",
+        acceptedAnswers: ["backpack", "her backpack", "put her backpack", "backpack between them", "backpack between the doors", "between the doors", "bag", "her bag"],
+        expectedDisplay: "She put her backpack between the doors"
       },
       {
         id: 3,
@@ -342,25 +342,26 @@
         file: "3. The Art Auction.mp3",
         prompt: "Why was Marcus willing to make high offers during the auction?",
         acceptedAnswers: [
-          "loved",
-          "loved the painting",
           "loved the blue painting",
+          "loved the painting",
           "he loved the painting",
           "he loved it",
+          "loved",
           "blue painting",
-          "catalog",
           "saw it in the catalog",
+          "in the catalog",
+          "catalog",
           "determined to win"
         ],
-        expectedDisplay: "He loved the blue painting since he saw it in the catalog (determined to win)"
+        expectedDisplay: "He had loved the blue painting since he saw it in the catalog"
       },
       {
         id: 4,
         title: "4. The Mountain Path",
         file: "4. The Mountain Path.mp3",
-        prompt: "What obstacle did they face on the mountain path?",
-        acceptedAnswers: ["compass", "broken compass", "lost compass", "his compass", "he's compass", "the compass", "navigation", "map", "fog", "dense fog", "weather", "rain", "path"],
-        expectedDisplay: "A broken compass / his compass (or dense fog)"
+        prompt: "What tool helped Lucas find his way when the fog covered the path?",
+        acceptedAnswers: ["compass", "his compass", "compass on his phone", "phone compass", "the compass", "phone"],
+        expectedDisplay: "The compass on his phone"
       },
       {
         id: 5,
@@ -368,16 +369,15 @@
         file: "5. The Computer Problem.mp3",
         prompt: "What specific error in the code was causing the checkout system to fail?",
         acceptedAnswers: [
-          "comma",
-          "a comma",
           "missing comma",
           "a missing comma",
+          "comma",
+          "a comma",
           "miss coma",
           "a miss coma",
           "missed comma",
           "syntax error",
-          "punctuation",
-          "punctuation error"
+          "punctuation"
         ],
         expectedDisplay: "A missing comma"
       },
@@ -387,11 +387,11 @@
         file: "6. The Old Watch.mp3",
         prompt: "What was stopping the watch's internal wheels from turning?",
         acceptedAnswers: [
-          "dust",
-          "piece of dust",
-          "a piece of dust",
           "tiny piece of dust",
           "a tiny piece of dust",
+          "piece of dust",
+          "a piece of dust",
+          "dust",
           "small piece of dust",
           "tiny dust"
         ],
@@ -403,18 +403,18 @@
         file: "7. The Forest Plant.mp3",
         prompt: "Why was finding the purple flower so significant for Dr. Alvarez?",
         acceptedAnswers: [
-          "disappeared",
-          "believe disappeared",
-          "they disappeared",
           "believed had disappeared",
+          "disappeared",
+          "they disappeared",
+          "believe disappeared",
           "extinct",
           "thought extinct",
-          "still lived",
           "proof that it still lived",
           "it still lived",
+          "still lived",
           "proof"
         ],
-        expectedDisplay: "Scientists believed it had disappeared many years ago (proof it still lived)"
+        expectedDisplay: "Scientists believed it had disappeared many years ago (proof that it still lived)"
       },
       {
         id: 8,
@@ -424,15 +424,13 @@
         acceptedAnswers: [
           "tablet",
           "her tablet",
-          "using a tablet",
           "using her tablet",
-          "with a tablet",
+          "using a tablet",
           "with her tablet",
           "brought her tablet",
-          "on her tablet",
-          "screen"
+          "on the screen"
         ],
-        expectedDisplay: "Using her tablet (brought her tablet instead)"
+        expectedDisplay: "She brought her tablet instead (using her tablet)"
       },
       {
         id: 9,
@@ -442,15 +440,14 @@
         acceptedAnswers: [
           "bought",
           "bought clothes",
+          "bought new clothes",
           "small shop",
+          "bought a white shirt",
+          "white shirt",
+          "black trousers",
+          "shirt and trousers",
           "shop",
           "store",
-          "white shirt",
-          "shirt",
-          "trousers",
-          "pants",
-          "bought a shirt",
-          "bought new clothes",
           "hebrew clothes"
         ],
         expectedDisplay: "He bought a white shirt and black trousers at a small shop"
@@ -461,15 +458,14 @@
         file: "10. The Terrace Garden.mp3",
         prompt: "What materials did Nora use to build her rooftop watering system?",
         acceptedAnswers: [
+          "plastic bottles and string",
+          "plastic bottles and long pieces of string",
           "plastic bottles",
-          "bottles",
+          "plastic bottle",
           "string",
           "pieces of string",
-          "plastic",
           "bottles and string",
-          "plastic bottles and string",
-          "plastic bottle",
-          "rope",
+          "plastic",
           "strings"
         ],
         expectedDisplay: "Plastic bottles and long pieces of string"
